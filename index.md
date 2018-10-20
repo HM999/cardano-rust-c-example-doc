@@ -8,17 +8,19 @@ Obviously data-type representation is different in different languages. We need 
 
 I downloaded the code from github, under the top level directory I added a cardano-test subdirectory. I add the cardano-test workspace to the main Cargo.toml:
 
-### [workspace]
-### members = [
-###    "cardano",
-###    "protocol",
-###    "storage-units",
-###    "storage",
-###    "hermes",
-###    "cardano-test"
-### ]
-### [dependencies]
-### printer = { path = "rust-crypto-wasm" }
+```
+ [workspace]
+ members = [
+    "cardano",
+    "protocol",
+    "storage-units",
+    "storage",
+    "hermes",
+    "cardano-test"
+]
+[dependencies]
+printer = { path = "rust-crypto-wasm" }
+```
 
 ### Markdown
 
