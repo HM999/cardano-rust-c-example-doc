@@ -6,7 +6,7 @@ Rust can be compiled to many platforms including Windows, Linux, Android and iOS
 
 Obviously data-type representation is different in different languages. We need to write a “bridging” function in Rust, that converts data, calls the functionality, converts data back. In the case of calling from C, we just need “half” the bridge; we only need Rust to talk to C. If we wanted to call the Rust code from another language X, we would need to also make the X-talking-to-C part.
 
-# The Rust Side
+### The Rust Side
 
 I downloaded the code from github, under the top level directory I added a cardano-test subdirectory. I add the cardano-test workspace to the main Cargo.toml:
 
@@ -143,7 +143,7 @@ pusheen: nm ../target/x86_64-apple-darwin/debug/libtest.a | grep my_b58_
 0000000000000000 T _my_b58_encode
 ```
 
-# The C Side.
+### The C Side.
 
 Now we need to call the functions from C. Under cardano-test make a header file cardano.h with the function definitions:
 
