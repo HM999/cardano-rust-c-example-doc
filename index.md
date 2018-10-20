@@ -1,10 +1,24 @@
 ## Calling Cardano-Rust from C
 
-There is an implementation of Cardano written in Rust here: [IOHK Cardano-Rust Git](https://github.com/input-output-hk/rust-cardano)
+There is an implementation of Cardano written in Rust here: [IOHK Cardano-Rust github](https://github.com/input-output-hk/rust-cardano)
 
 Rust can be compiled to many platforms including Windows, Linux, Android and iOS. You can also write functions in Rust that can be called as if they were C functions. Almost all languages allow you to call C library functions. That means you can call the Cardano code from (almost) any language on (almost) any platform.
 
 Obviously data-type representation is different in different languages. We need to write a “bridging” function in Rust, that converts data, calls the functionality, converts data back. In the case of calling from C, we just need “half” the bridge; we only need Rust to talk to C. If we wanted to call the Rust code from another language X, we would need to also make the X-talking-to-C part.
+
+I downloaded the code from github, under the top level directory I added a cardano-test subdirectory. I add the cardano-test workspace to the main Cargo.toml:
+
+### [workspace]
+### members = [
+###    "cardano",
+###    "protocol",
+###    "storage-units",
+###    "storage",
+###    "hermes",
+###    "cardano-test"
+### ]
+### [dependencies]
+### printer = { path = "rust-crypto-wasm" }
 
 ### Markdown
 
