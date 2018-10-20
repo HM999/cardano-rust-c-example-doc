@@ -1,8 +1,10 @@
-## Welcome to GitHub Pages
+## Calling Cardano-Rust from C
 
-You can use the [editor on GitHub](https://github.com/HM999/cardano-rust-c-example-doc/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+There is an implementation of Cardano written in Rust here: [IOHK Cardano-Rust Git](https://github.com/input-output-hk/rust-cardano)
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Rust can be compiled to many platforms including Windows, Linux, Android and iOS. You can also write functions in Rust that can be called as if they were C functions. Almost all languages allow you to call C library functions. That means you can call the Cardano code from (almost) any language on (almost) any platform.
+
+Obviously data-type representation is different in different languages. We need to write a “bridging” function in Rust, that converts data, calls the functionality, converts data back. In the case of calling from C, we just need “half” the bridge; we only need Rust to talk to C. If we wanted to call the Rust code from another language X, we would need to also make the X-talking-to-C part.
 
 ### Markdown
 
