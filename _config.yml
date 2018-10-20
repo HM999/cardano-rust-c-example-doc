@@ -1,2 +1,4 @@
 theme: jekyll-theme-cayman
 title: Calling Cardano-Rust from C
+github:
+  is_page_project: false
