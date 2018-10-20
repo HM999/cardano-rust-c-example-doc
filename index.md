@@ -6,6 +6,8 @@ Rust can be compiled to many platforms including Windows, Linux, Android and iOS
 
 Obviously data-type representation is different in different languages. We need to write a “bridging” function in Rust, that converts data, calls the functionality, converts data back. In the case of calling from C, we just need “half” the bridge; we only need Rust to talk to C. If we wanted to call the Rust code from another language X, we would need to also make the X-talking-to-C part.
 
+# The Rust Side
+
 I downloaded the code from github, under the top level directory I added a cardano-test subdirectory. I add the cardano-test workspace to the main Cargo.toml:
 
 ```
@@ -106,36 +108,110 @@ fn my_b58_decode(encoded: *const c_char, p: *mut u8) -> i8
 }
 ```
 
+I'm not familiar with Rust, perhaps it could be done better, I don't know. The function my_b58_encode takes a C pointer to size bytes, and a pointer to allocated memory for the output. my_b58_decode takes a pointer to a string, and a pointer to allocated and initialised memory for the output.
 
+I create a second file under src/ called lib.rs:
 
+```
+extern crate cardano;
 
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+pub mod b58;
+pub use b58::*;
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+From cardano-test, I execute “cargo build” to make the library for the target platform. You can see platform list: rustc --print target-list. I am using a mac, so I make it for x86_64-apple-darwin:
 
-### Jekyll Themes
+```
+pusheen: cargo build --target x86_64-apple-darwin
+   Compiling libc v0.2.43
+   Compiling cbor_event v1.0.0
+   ...
+```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/HM999/cardano-rust-c-example-doc/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+Building produces the library file under target/ in the parent directory (weird right?). The filename is lib[package_name].a (or .so depending on config/platform), the “package_name” is as specified in Cargo.toml, which controls the build.
 
-### Support or Contact
+```
+pusheen: ls -lrt ../target/x86_64-apple-darwin/debug/libtest.a
+-rw-r--r--  2 pusheen  staff  18725848 19 Oct 12:41 ../target/x86_64-apple-darwin/debug/libtest.a
+```
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+The new functions can be seen in the library:
+
+```
+pusheen: nm ../target/x86_64-apple-darwin/debug/libtest.a | grep my_b58_
+0000000000000180 T _my_b58_decode
+0000000000000000 T _my_b58_encode
+```
+
+# The C Side.
+
+Now we need to call the functions from C. Under cardano-test make a header file cardano.h with the function definitions:
+
+```
+int8_t my_b58_encode( const uint8_t *bytes, unsigned int size, char *encoded );
+int8_t my_b58_decode( const char *encoded, uint8_t *bytes );
+```
+
+For convenience I create a soft link to the library and header file:
+
+```
+ln -s ../../target/x86_64-apple-darwin/debug/libtest.a ./libtest.a
+```
+
+Then I make a C file with a main function that calls our functions:
+
+```
+pusheen: cat my_b58_test.c 
+#include 
+#include 
+#include 
+#include "../cardano.h"
+
+int8_t bytes_to_hex( uint8_t*, unsigned int, char *);
+
+int main() {
+
+  char *plain1 = "Hello World!";
+  char *ebuffer = (char *)malloc(1000);
+  memset(ebuffer,'\0',1000);
+ 
+  printf("\nData to encode: %s \n",plain1);
+  my_b58_encode((uint8_t *)plain1,strlen(plain1),ebuffer);
+
+  printf("Encoded: %s \n",ebuffer);
+
+  uint8_t *dbuffer = (uint8_t *)malloc(1000);
+  memset(dbuffer,'\0',1000);
+
+  my_b58_decode(ebuffer,(uint8_t *)dbuffer);
+   
+  printf("Decoded again: %s \n\n",dbuffer);
+
+  free(ebuffer);
+  free(dbuffer);
+}
+```
+
+We can compile, link the binary:
+
+```
+gcc -g my_b58_test.c libtest.a 
+```
+
+Run the binary:
+
+```
+pusheen: ./a.out
+
+Data to encode: Hello World! 
+Encoded: 2NEpo7TZRRrLZSi2U 
+Decoded again: Hello World! 
+```
+
+Checking can be done using this handy [online tool](https://www.browserling.com/tools/base58-encode)
+
+Code for this example is [here](https://github.com/HM999/cardano-rust-c-example)
+
+An observation: Be careful to allocate and free from the same language runtime; if you allocated in Rust you must free in Rust, and vice versa, otherwise you will get strange periodic runtime errors. This sounds simple but may not be, initially I tried creating a Rust vec datatype on the back of data at a C pointer, it worked but occasionally it bombed. Seems like Rust manages the memory for vec internally, how exactly I don't know, but looks like sometimes it is freeing and reallocating. That wouldn't be an issue if your whole program was written in Rust, you'd never know, but in this case it's a seggy.
+
+That is the end of this simple example of calling Cardano-Rust from C. Next we will build a bridge to Android/Java and call the functions from there.
