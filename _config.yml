@@ -1,3 +1,4 @@
 theme: jekyll-theme-cayman
 title: ABC
-is_project_page: false
+github:
+  is_project_page: false
