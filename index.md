@@ -214,4 +214,4 @@ Code for this example is [here](https://github.com/HM999/cardano-rust-c-example)
 
 An observation: Be careful to allocate and free from the same language runtime; if you allocated in Rust you must free in Rust, and vice versa, otherwise you will get strange periodic runtime errors. This sounds simple but may not be, initially I tried creating a Rust vec datatype on the back of data at a C pointer, it worked but occasionally it bombed. Seems like Rust manages the memory for vec internally, how exactly I don't know, but looks like sometimes it is freeing and reallocating. That wouldn't be an issue if your whole program was written in Rust, you'd never know, but in this case it's a seggy.
 
-That is the end of this simple example of calling Cardano-Rust from C. Next we will build a bridge to Android/Java and call the functions from there.
+That is the end of this simple example of calling Cardano-Rust from C. [Next we will build a bridge to Android/Java](https://hm999.github.io/cardano-rust-android-example-doc/) and call the functions from there.
